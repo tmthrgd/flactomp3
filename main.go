@@ -96,7 +96,7 @@ func convert(ctx context.Context, wrk workUnit) error {
 	return nil
 }
 
-func worker(ctx context.Context, ch chan workUnit, wg *sync.WaitGroup) {
+func worker(ctx context.Context, ch <-chan workUnit, wg *sync.WaitGroup) {
 	for work := range ch {
 		if err := convert(ctx, work); err != nil {
 			fmt.Fprintf(os.Stderr, "<%s>: %v\n", work.path, err)
