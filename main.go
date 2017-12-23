@@ -19,8 +19,6 @@ import (
 	"strings"
 	"sync"
 	"syscall"
-
-	"golang.org/x/sync/errgroup"
 )
 
 var pathSanitizer = strings.NewReplacer(":", "-")
@@ -59,7 +57,8 @@ func convert(ctx context.Context, wrk workUnit) error {
 		return s.Err()
 	}
 
-	eg, ctx := errgroup.WithContext(ctx)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	cmd1 := exec.CommandContext(ctx, "flac", "-c", "-d", wrk.path)
 	cmd2 := exec.CommandContext(ctx, "lame", "-b", "192", "-h",
@@ -80,15 +79,21 @@ func convert(ctx context.Context, wrk workUnit) error {
 		return err
 	}
 
-	eg.Go(cmd1.Run)
-	eg.Go(cmd2.Run)
-
-	if eg.Wait() == nil {
-		return nil
+	if err := cmd2.Start(); err != nil {
+		return err
 	}
 
-	os.Remove(newPath(wrk.path))
-	return eg.Wait()
+	if err := cmd1.Run(); err != nil {
+		os.Remove(newPath(wrk.path))
+		return err
+	}
+
+	if err := cmd2.Wait(); err != nil {
+		os.Remove(newPath(wrk.path))
+		return err
+	}
+
+	return nil
 }
 
 func worker(ctx context.Context, ch chan workUnit, wg *sync.WaitGroup) {
