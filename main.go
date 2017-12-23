@@ -84,9 +84,6 @@ func convert(ctx context.Context, wrk workUnit) error {
 	}
 
 	if err := cmd1.Run(); err != nil {
-		cancel()
-		cmd2.Wait()
-
 		os.Remove(newPath(wrk.path))
 		return err
 	}
