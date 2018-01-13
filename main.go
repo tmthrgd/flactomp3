@@ -149,9 +149,7 @@ func main() {
 		}
 
 		if infoOut, err := os.Stat(newPath(path)); err == nil {
-			if infoIn, err := os.Stat(path); err != nil {
-				return err
-			} else if infoIn.ModTime().Before(infoOut.ModTime()) {
+			if info.ModTime().Before(infoOut.ModTime()) {
 				return nil
 			}
 		} else if !os.IsNotExist(err) {
