@@ -19,14 +19,30 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+
+	"github.com/valyala/fasttemplate"
 )
 
 var pathSanitizer = strings.NewReplacer(":", "-")
 
-func newPath(path string) string {
+func newPath(tmpl *fasttemplate.Template, path string) string {
 	dir, file := filepath.Split(path)
-	file = "." + pathSanitizer.Replace(file) + ".mp3"
-	return dir + file
+	ext := filepath.Ext(file)
+	name := strings.TrimSuffix(file, ext)
+
+	return tmpl.ExecuteString(map[string]interface{}{
+		"path": path,
+
+		"dir": dir,
+
+		"file":  file,
+		"@file": pathSanitizer.Replace(file),
+
+		"name":  name,
+		"@name": pathSanitizer.Replace(name),
+
+		"ext": ext,
+	})
 }
 
 var variableSeperator = []byte{'='}
@@ -69,7 +85,7 @@ func convert(ctx context.Context, wrk workUnit) error {
 		"--tl", meta["ALBUM"],
 		"--ty", meta["DATE"],
 		"--add-id3v2",
-		"-", newPath(wrk.path))
+		"-", wrk.newPath)
 
 	cmd1.Stderr = os.Stderr
 	cmd2.Stdout, cmd2.Stderr = os.Stdout, os.Stderr
@@ -84,12 +100,12 @@ func convert(ctx context.Context, wrk workUnit) error {
 	}
 
 	if err := cmd1.Run(); err != nil {
-		os.Remove(newPath(wrk.path))
+		os.Remove(wrk.newPath)
 		return err
 	}
 
 	if err := cmd2.Wait(); err != nil {
-		os.Remove(newPath(wrk.path))
+		os.Remove(wrk.newPath)
 		return err
 	}
 
@@ -107,7 +123,7 @@ func worker(ctx context.Context, ch <-chan workUnit, wg *sync.WaitGroup) {
 }
 
 type workUnit struct {
-	path string
+	path, newPath string
 }
 
 func fileIsFlac(path string) (bool, error) {
@@ -127,6 +143,7 @@ func fileIsFlac(path string) (bool, error) {
 }
 
 func main() {
+	outPath := flag.String("out", "{dir}.{@file}.mp3", "the output path template")
 	recurse := flag.Bool("recurse", true, "whether to walk into child directories")
 	flag.Parse()
 
@@ -147,6 +164,8 @@ func main() {
 		dir = "."
 	}
 
+	pathTmpl := fasttemplate.New(*outPath, "{", "}")
+
 	if err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -164,7 +183,9 @@ func main() {
 			return err
 		}
 
-		if infoOut, err := os.Stat(newPath(path)); err == nil {
+		newPath := newPath(pathTmpl, path)
+
+		if infoOut, err := os.Stat(newPath); err == nil {
 			if info.ModTime().Before(infoOut.ModTime()) {
 				return nil
 			}
@@ -173,7 +194,7 @@ func main() {
 		}
 
 		wg.Add(1)
-		work <- workUnit{path}
+		work <- workUnit{path, newPath}
 		return nil
 	}); err != nil {
 		panic(err)
