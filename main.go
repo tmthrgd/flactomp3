@@ -12,6 +12,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -146,6 +147,12 @@ func main() {
 	outPath := flag.String("out", "{dir}.{@file}.mp3", "the output path template")
 	recurse := flag.Bool("recurse", true, "whether to walk into child directories")
 	flag.Parse()
+
+	for _, name := range [...]string{"metaflac", "flac", "lame"} {
+		if _, err := exec.LookPath(name); err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	var wg sync.WaitGroup
 
