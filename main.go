@@ -171,7 +171,10 @@ func main() {
 		dir = "."
 	}
 
-	pathTmpl := fasttemplate.New(*outPath, "{", "}")
+	pathTmpl, err := fasttemplate.NewTemplate(*outPath, "{", "}")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -204,7 +207,7 @@ func main() {
 		work <- workUnit{path, newPath}
 		return nil
 	}); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	done := make(chan struct{})
