@@ -110,6 +110,22 @@ type workUnit struct {
 	path string
 }
 
+func fileIsFlac(path string) (bool, error) {
+	if filepath.Ext(path) == ".flac" {
+		return true, nil
+	}
+
+	f, err := os.Open(path)
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
+
+	var buf [4]byte
+	_, err = f.Read(buf[:])
+	return string(buf[:]) == "fLaC", err
+}
+
 func main() {
 	recurse := flag.Bool("recurse", true, "whether to walk into child directories")
 	flag.Parse()
@@ -144,8 +160,8 @@ func main() {
 			return nil
 		}
 
-		if filepath.Ext(path) != ".flac" {
-			return nil
+		if flac, err := fileIsFlac(path); err != nil || !flac {
+			return err
 		}
 
 		if infoOut, err := os.Stat(newPath(path)); err == nil {
