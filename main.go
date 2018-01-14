@@ -67,7 +67,7 @@ func convert(ctx context.Context, wrk workUnit) error {
 			return errors.New("invalid variable format")
 		}
 
-		meta[string(tok[0])] = string(tok[1])
+		meta[string(bytes.ToUpper(tok[0]))] = string(tok[1])
 	}
 
 	if s.Err() != nil {
