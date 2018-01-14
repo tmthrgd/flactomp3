@@ -49,7 +49,7 @@ func newPath(tmpl *fasttemplate.Template, path string) string {
 var variableSeperator = []byte{'='}
 
 func convert(ctx context.Context, wrk workUnit) error {
-	cmd := exec.CommandContext(ctx, "metaflac", "--export-tags-to=-", wrk.path)
+	cmd := exec.CommandContext(ctx, "metaflac", "--export-tags-to=-", "--no-utf8-convert", wrk.path)
 
 	var buf bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &buf, os.Stderr
