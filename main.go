@@ -21,7 +21,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/valyala/fasttemplate"
+	"github.com/tmthrgd/fasttemplate"
 )
 
 var pathSanitizer = strings.NewReplacer(":", "-")
