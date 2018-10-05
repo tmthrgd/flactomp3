@@ -46,7 +46,7 @@ func newPath(tmpl *fasttemplate.Template, path string) string {
 	})
 }
 
-var variableSeperator = []byte{'='}
+var variableSeparator = []byte{'='}
 
 func convert(ctx context.Context, wrk workUnit) error {
 	cmd := exec.CommandContext(ctx, "metaflac", "--export-tags-to=-", "--no-utf8-convert", wrk.path)
@@ -62,7 +62,7 @@ func convert(ctx context.Context, wrk workUnit) error {
 	meta := make(map[string]string)
 
 	for s.Scan() {
-		tok := bytes.SplitN(s.Bytes(), variableSeperator, 2)
+		tok := bytes.SplitN(s.Bytes(), variableSeparator, 2)
 		if len(tok) < 2 {
 			return errors.New("invalid variable format")
 		}
