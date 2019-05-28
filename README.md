@@ -2,6 +2,12 @@
 
 flactomp3 is a Golang port of a shell script I wrote to recursively convert a directory of flac files to mp3.
 
+## Installation:
+
+`go get tmthrgd.dev/go/flactomp3`
+
+## Usage:
+
 It takes two flags:
 
 - `-recurse` (default `true`) that controls whether or not it descends recursively into sub-directories, and
