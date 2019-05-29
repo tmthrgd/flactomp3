@@ -4,7 +4,7 @@ flactomp3 is a Golang port of a shell script I wrote to recursively convert a di
 
 ## Installation:
 
-`go get tmthrgd.dev/go/flactomp3`
+`go get go.tmthrgd.dev/flactomp3`
 
 ## Usage:
 

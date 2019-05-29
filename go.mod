@@ -1,4 +1,4 @@
-module tmthrgd.dev/go/flactomp3
+module go.tmthrgd.dev/flactomp3
 
 go 1.12
 
